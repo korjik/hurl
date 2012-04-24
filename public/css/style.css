@@ -202,6 +202,9 @@ ul.examples li {
 ul.examples li.twitter {
   background: #fff url(http://twitter.com/favicon.ico) 0 40% no-repeat;
 }
+ul.examples li.quickblox {
+  background: #fff url(http://quickblox.com/favicon.ico) 0 40% no-repeat;
+}
 ul.examples li.vimeo {
   background: #fff url(http://vimeo.com/favicon.ico) 0 40% no-repeat;
 }

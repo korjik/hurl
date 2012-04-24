@@ -1,9 +1,25 @@
+require "bitly"
 module Views
   class Index < Layout
     def previous_hurl
       if prev = prev_hurl
         [ :hurl => prev.to_s ]
       end
+    end
+    def footer
+      config = YAML.load_file(RACK_ROOT+"/config/application.yml")
+      config["footer"]
+    end
+    def initialize
+      config = YAML.load_file(RACK_ROOT+"/config/application.yml")
+      @bl_key=config["bitly"]["key"]
+      @bl_name=config["bitly"]["name"]
+      Bitly.use_api_version_3
+    end
+
+    def short_link(link)
+      bit = Bitly.new(@bl_name,@bl_key)
+      bit.shorten("http://hurl.quickblox.com/#{link}").short_url
     end
 
     def next_hurl
@@ -107,7 +123,7 @@ module Views
     end
 
     def hurl_permalink
-      @view_id ? "/hurls/#{@hurl['id']}/#{@view_id}" : "#"
+      @view_id ? short_link("/hurls/#{@hurl['id']}/#{@view_id}") : "#"
     end
 
     def follows_redirects?
@@ -120,7 +136,7 @@ module Views
     #
 
     def view_permalink
-      @view_id ? "/views/#{@view_id}" : "#"
+      @view_id ? short_link("/views/#{@view_id}") : "#"
     end
 
     def view_request

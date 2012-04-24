@@ -1,3 +1,8 @@
-db/
+Bdb/
 .bundle/
 bin/
+config/*.yml
+config/*.rb
+db/
+tmp/
+log/*

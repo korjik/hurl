@@ -7,31 +7,34 @@ module Hurl
 
     dir = File.dirname(File.expand_path(__FILE__))
 
-    set :public,   "#{dir}/public"
-    set :root,     RACK_ROOT
+    set :public, "#{dir}/public"
+    set :root, RACK_ROOT
     set :app_file, __FILE__
-    set :static,   true
+    set :static, true
 
     set :views, "#{dir}/templates"
 
     set :mustache, {
-      :namespace => Object,
-      :views     => "#{dir}/views",
-      :templates => "#{dir}/templates"
+        :namespace => Object,
+        :views => "#{dir}/views",
+        :templates => "#{dir}/templates"
     }
 
     enable :sessions
-
-    set :github_options, { :client_id    => ENV['HURL_CLIENT_ID'],
-                           :secret       => ENV['HURL_SECRET'],
-                           :scopes       => '',
-                           :callback_url => '/login/callback/' }
+    config = YAML.load_file(RACK_ROOT+"/config/application.yml")
+    gh_cl=config["github"]["client_id"]
+    gh_secret=config["github"]["secret"]
+    set :github_options, {:client_id => gh_cl,
+                          :secret => gh_secret,
+                          :scopes => '',
+                          :callback_url => '/login/callback/'}
 
     register ::Sinatra::Auth::Github
 
     def initialize(*args)
       super
       @debug = ENV['DEBUG']
+
       setup_default_hurls
     end
 
@@ -167,17 +170,17 @@ module Hurl
           puts curl.header_str
         end
 
-        header  = pretty_print_headers(curl.header_str)
-        type    = url =~ /(\.js)$/ ? 'js' : curl.content_type
-        body    = pretty_print(type, curl.body_str)
+        header = pretty_print_headers(curl.header_str)
+        type = url =~ /(\.js)$/ ? 'js' : curl.content_type
+        body = pretty_print(type, curl.body_str)
         request = pretty_print_requests(sent_headers, post_data)
 
-        json :header    => header,
-             :body      => body,
-             :request   => request,
-             :hurl_id   => save_hurl(params),
+        json :header => header,
+             :body => body,
+             :request => request,
+             :hurl_id => save_hurl(params),
              :prev_hurl => @user ? @user.second_to_last_hurl_id : nil,
-             :view_id   => save_view(header, body, request)
+             :view_id => save_view(header, body, request)
       rescue => e
         json :error => e.to_s
       end
@@ -210,7 +213,7 @@ module Hurl
     def add_auth(auth, curl, params)
       if auth == 'basic'
         username, password = params.values_at(:username, :password)
-        encoded = Base64.encode64("#{username}:#{password}").gsub("\n",'')
+        encoded = Base64.encode64("#{username}:#{password}").gsub("\n", '')
         curl.headers['Authorization'] = "Basic #{encoded}"
       end
     end
@@ -240,7 +243,7 @@ module Hurl
     end
 
     def save_view(header, body, request)
-      hash = { 'header' => header, 'body' => body, 'request' => request }
+      hash = {'header' => header, 'body' => body, 'request' => request}
       id = sha(hash.to_s)
       DB.save(:views, id, hash)
       id

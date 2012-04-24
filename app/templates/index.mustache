@@ -26,6 +26,7 @@
 
     <input type="text" name="url" title="URL" value="{{ hurl_url }}"/>
   </p>
+
   <p>
     <select id="select-method" name="method" class="form-alpha">
       <option value="GET" {{# method_is_GET? }}selected="selected"{{/ method_is_GET? }}>GET</option>
@@ -43,6 +44,7 @@
     <div id="post-params" style="display: none;">
       <a id="add-param" href="#"><span class="link-icon">+</span> add param</a>
       <a id="set-post-body" href="#"><span class="link-icon">+</span> set post body</a>
+      <a id="get-qb-signature" href="#qb-secret-wrap" class="various"><span class="link-icon">(!)</span> get signature</a>
       {{# hurl_param_keys }}
         <p id="param-fields">
           <a href="#" class="param-delete"><img class="delete" src="/img/delete.png" title="remove"/></a>
@@ -150,7 +152,7 @@
     </div>
   </div>
   <div class="utils">
-    <a href="#" class="full-size-link nav-item" target="_blank">view full size</a>
-    <a href="#" class="permalink nav-item">permalink</a>
+    <a href="{{ view_permalink }}" class="full-size-link nav-item" target="_blank">view full size</a>
+    <a href="{{ hurl_permalink }}" class="permalink nav-item">permalink</a>
   </div>
 </div>

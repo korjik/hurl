@@ -25,6 +25,12 @@
       <script src="/js/jquery.form.js" type="text/javascript"></script>
       <script src="/js/jquery.relatize_date.js" type="text/javascript"></script>
       <script src="/js/json2.js" type="text/javascript"></script>
+       <!-- QB signature util -->
+       <script type="text/javascript" src="/js/crypto-sha1-hmac.js"></script>
+       <script src="/js/fancybox/jquery.fancybox.pack.js?v=2.0.4" type="text/javascript"></script>
+       <link rel="stylesheet" href="/js/fancybox/jquery.fancybox.css?v=2.0.4" type="text/css" media="screen" />
+       <!-- END QB signature util -->
+
     {{/ bundled?}}
 </head>
 
@@ -59,11 +65,167 @@
       </p>
       {{{ yield }}}
     </div>
-    <div id="footer">
-      <a href="http://twitter.com/hurlit">twitter</a>
-      &nbsp;
-      <a href="/about/">about</a>
-    </div>
+       <div id="footer">
+           <a href="http://quickblox.com">Quickblox site</a>
+           &nbsp;&middot;&nbsp;
+           <a href="https://admin.quickblox.com/register">Signup for a QuickBlox service</a>
+           &nbsp;&middot;&nbsp;
+           <a href="http://twitter.com/quickblox">twitter</a>
+           &nbsp;&middot;&nbsp;
+           <a href="http://wiki.quickblox.com/HURL">about</a>
+         </div>
+       </div>
+
+       <!-- QB signature util -->
+       <div style="background:gray;">
+         <script type="text/javascript" charset="utf-8">
+     	    $(document).ready(function() {
+     			$(".various").fancybox({
+             		'autoDimensions'	: false,
+     				'width'        		: 'auto',
+     				'height'        	: 'auto',
+     				'transitionIn'		: 'none',
+     				'transitionOut'		: 'none',
+     				onComplete 			: function(){
+     					$('#qb-secret').focus().select();
+     					$('#qb-secret').keypress(function(e) {
+     					    if(e.which == 13) {
+     					    	sendSecret();
+     					    }
+     					});
+     					$('#qb-secret-btn').click(sendSecret);
+     				},
+     				onStart : function() {
+     					$('#qb-secret-wrap').show();
+     				},
+     				onCleanup : function() {
+     					$('#qb-secret-wrap').hide();
+     				}
+     			});
+     		});
+
+     	    function sendSecret() {
+     	    	$.fancybox.close(true);
+     	    	$('#qb-secret-wrap').hide();
+     	    	signatureController();
+     	    }
+
+             function signatureController() {
+         		var fields = fieldsAreFilled();
+         		if (fields) {
+         			getQBSignature(fields);
+         		} else {
+         			alert('app_id and auth_key should be defined');
+         		}
+             }
+
+             function fieldsAreFilled() {
+             	var auth = null;
+
+             	var appId = null;
+             	var authKey = null;
+             	var nonce = null;
+             	var timestamp = null;
+             	$('input[name="param-keys[]"]').each(function(k,v){
+             		if ($(v).val() == 'app_id') {
+             			appId = $(v).next().val();
+             		}
+             		if ($(v).val() == 'auth_key') {
+             			authKey = $(v).next().val();
+             		}
+             	});
+
+             	if (appId && authKey) {
+             		auth = {
+     	        		appId : appId,
+     	        		authKey : authKey,
+             		}
+             	}
+
+             	return auth;
+             }
+
+             function getQBSignature(auth) {
+
+             	var secret = $('#qb-secret').val();
+
+             	if (auth.appId && auth.authKey) {
+             		var nonce = Math.floor(Math.random() * 1000);
+             		var timestamp = Math.round((new Date()).getTime() / 1000);
+             		var message = 'app_id=' + auth.appId + '&auth_key=' + auth.authKey + '&nonce=' + nonce + '&timestamp=' + timestamp;
+             		var hmac = Crypto.HMAC(Crypto.SHA1, message, secret);
+
+         			addFields('nonce', nonce);
+         			addFields('timestamp', timestamp);
+         			addFields('signature', hmac);
+             	} else {
+             		alert('Fields are filled incorrect.');
+             	}
+             }
+
+             function addFields(key, value) {
+         		var field = null;
+         		$('input[name="param-keys[]"]').each(function(k,v){
+         			if ($(v).val() == key) {
+         				field = v;
+         			}
+         		});
+
+         		if (field) {
+         			$(field).next().val(value);
+         			return true;
+         		}
+
+     		    var newField = $('#param-fields').clone()
+     		    newField.toggle().attr('id', '')
+     		    newField.addClass('param-field')
+     		    newField.find('.form-alpha').attr('title', 'name')
+     		    newField.find('.form-beta').attr('title', 'value')
+     		    //Hurl.labelHints( newField.find('input[title]') )
+     		    //registerRemoveHandlers( newField, '.param-delete' )
+     		    newField.find('.param-delete').click(function(){
+     		    	$(this).parent().remove();
+     		    });
+     		    $('#post-params').append( newField )
+
+     		    newField.find('input.form-alpha').val(key);
+     		    newField.find('input.form-beta').val(value);
+             }
+         </script>
+       </div>
+
+       <div id="qb-secret-wrap" style="display:none;">
+       	<label for="qb-secret">App secret</label>
+       	<input type="text" name="qb-secret" id="qb-secret" placeholder="Enter your secret" style="width:200px;">
+       	<button class="bigbutton" id="qb-secret-btn">Do it!</button>
+       </div>
+       <!-- END QB signature util -->
+
+     <!-- Yandex.Metrika counter -->
+     <script type="text/javascript">
+     (function (d, w, c) {
+         (w[c] = w[c] || []).push(function() {
+             try {
+                 w.yaCounter13425559 = new Ya.Metrika({id:13425559,
+                         trackLinks:true,
+                         accurateTrackBounce:true});
+             } catch(e) {}
+         });
+
+         var n = d.getElementsByTagName("script")[0],
+             s = d.createElement("script"),
+             f = function () { n.parentNode.insertBefore(s, n); };
+         s.type = "text/javascript";
+         s.async = true;
+         s.src = (d.location.protocol == "https:" ? "https:" : "http:") + "//mc.yandex.ru/metrika/watch.js";
+
+         if (w.opera == "[object Opera]") {
+             d.addEventListener("DOMContentLoaded", f);
+         } else { f(); }
+     })(document, window, "yandex_metrika_callbacks");
+     </script>
+     <noscript><div><img src="//mc.yandex.ru/watch/13425559" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+     <!-- /Yandex.Metrika counter -->
   </div>
 </body>
 </html>
